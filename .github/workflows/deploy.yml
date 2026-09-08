@@ -26,7 +26,7 @@ jobs:
         env:
           VAULT_TOKEN: ${{ secrets.VAULT_ROOT_TOKEN }}
         run: |
-          docker compose down
+          docker rm -f reactapp-db reactapp-backend reactapp-frontend || true
           docker compose up -d
 
       - name: Check deployed services
