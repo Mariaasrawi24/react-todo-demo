@@ -26,6 +26,7 @@ jobs:
         env:
           VAULT_TOKEN: ${{ secrets.VAULT_ROOT_TOKEN }}
         run: |
+          docker compose down
           docker compose up -d
 
       - name: Check deployed services
