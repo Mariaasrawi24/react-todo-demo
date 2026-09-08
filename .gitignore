@@ -35,3 +35,5 @@ coverage/
 
 # Docker
 pgdata/
+
+actions-runner/
