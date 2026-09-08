@@ -1,0 +1,32 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build frontend image
+        run: docker compose build frontend
+
+      - name: Build backend image
+        run: docker compose build backend
+
+      - name: Build database image
+        run: docker compose build db
+
+      - name: Deploy full stack
+        env:
+          VAULT_TOKEN: ${{ secrets.VAULT_ROOT_TOKEN }}
+        run: |
+          docker compose up -d
+
+      - name: Check deployed services
+        run: docker compose ps
