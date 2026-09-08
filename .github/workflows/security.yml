@@ -25,11 +25,16 @@ jobs:
         run: |
           trufflehog git file://"$GITHUB_WORKSPACE" --branch main --only-verified
 
-      - name: Install Bandit
-        run: python3 -m pip install bandit
+       - name: Install Bandit
+        run: |
+          python3 -m venv .bandit-venv
+          . .bandit-venv/bin/activate
+          pip install bandit
 
       - name: Bandit SAST scan
-        run: bandit -r backend/app
+        run: |
+          . .bandit-venv/bin/activate
+          bandit -r backend/app
 
       - name: Hadolint backend Dockerfile
         run: |
