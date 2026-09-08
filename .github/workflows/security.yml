@@ -1,0 +1,73 @@
+name: Security Scan
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  security-scan:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: TruffleHog secret scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified
+
+      - name: Install Bandit
+        run: python3 -m pip install bandit
+
+      - name: Bandit SAST scan
+        run: bandit -r backend/app
+
+      - name: Hadolint backend Dockerfile
+        run: |
+          docker run --rm \
+            -i hadolint/hadolint < backend/Dockerfile
+
+      - name: Hadolint database Dockerfile
+        run: |
+          docker run --rm \
+            -i hadolint/hadolint < db/Dockerfile
+
+      - name: Hadolint frontend Dockerfile
+        run: |
+          docker run --rm \
+            -i hadolint/hadolint < frontend/Dockerfile
+
+      - name: Build frontend image
+        run: docker compose build frontend
+
+      - name: Build backend image
+        run: docker compose build backend
+
+      - name: Build database image
+        run: docker compose build db
+
+      - name: Trivy frontend image scan
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:latest image \
+            react-todo-demo-frontend
+
+      - name: Trivy backend image scan
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:latest image \
+            react-todo-demo-backend
+
+      - name: Trivy database image scan
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:latest image \
+            react-todo-demo-db
