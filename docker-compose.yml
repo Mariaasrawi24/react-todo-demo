@@ -1,0 +1,55 @@
+services:
+  db:
+    build:
+      context: ./db
+    container_name: reactapp-db
+    environment:
+      VAULT_ADDR: http://10.0.2.15:8200
+      VAULT_TOKEN: ${VAULT_TOKEN}
+    ports:
+      - "15432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U todos -d todos"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: reactapp-backend
+    environment:
+      VAULT_ADDR: http://10.0.2.15:8200
+      VAULT_TOKEN: ${VAULT_TOKEN}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: reactapp-frontend
+    ports:
+      - "3000:8080"
+    security_opt:
+      - label=disable
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  pgdata:
