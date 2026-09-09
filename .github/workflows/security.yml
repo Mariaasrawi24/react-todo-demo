@@ -25,7 +25,7 @@ jobs:
         run: |
           trufflehog git file://"$GITHUB_WORKSPACE" --branch main --only-verified
 
-       - name: Install Bandit
+      - name: Install Bandit
         run: |
           python3 -m venv .bandit-venv
           . .bandit-venv/bin/activate
